@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Törtchen-Backstube</title>
+<meta name="theme-color" content="#B8174F">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧁</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+/* ======== HIER EINTRAGEN (aus Supabase: Project Settings → API) ======== */
+const SUPABASE_URL = 'https://glepsqgagnpnwoyfdmjz.supabase.co';   // z. B. https://abcdefgh.supabase.co
+const SUPABASE_KEY = 'sb_publishable_Wjlw9XYfWYV2ZOzyg1rrVQ_Lupj0sjj';      // "anon public" bzw. "publishable" Key
+/* ======================================================================= */
+</script>
+<style>
+:root{
+  --bg:#FBF6FA; --surface:#FFFFFF; --surface2:#F4EAF1; --ink:#2A1B2E; --muted:#7A6680;
+  --berry:#B8174F; --berry-ink:#FFFFFF; --pista:#5E8A4A; --gold:#B8861E; --line:#E6D6E2;
+  --door:#EBDCE6; --door-ink:#6B5470; --err:#B3261E;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#1C1220; --surface:#291C2F; --surface2:#33243A; --ink:#F5EAF3; --muted:#B9A4BF;
+    --berry:#F0567F; --berry-ink:#1C1220; --pista:#9CC685; --gold:#E8BC57; --line:#45334C;
+    --door:#3A2A41; --door-ink:#C9B4CE; --err:#FF8A80; color-scheme: dark;
+  }
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Fredoka","Nunito","Trebuchet MS",system-ui,sans-serif;font-size:17px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+#app{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:2rem;line-height:1.1;margin:4px 0 4px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.3rem;margin:0 0 10px;font-weight:600}
+p{margin:0 0 10px}
+.sub{color:var(--muted);margin-bottom:18px}
+section{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px 16px;margin:16px 0}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
+
+/* Adventskalender */
+.doors{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:14px 0 6px}
+.door{aspect-ratio:1/1;border:none;border-radius:12px;background:var(--door);color:var(--door-ink);font-weight:600;font-size:1.05rem;display:flex;align-items:center;justify-content:center;padding:0}
+.door.done{background:var(--surface);border:2px dashed var(--line);color:var(--muted);font-size:1.25rem}
+.door.now{background:var(--berry);color:var(--berry-ink);box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--berry)}
+.door.sel{border-color:var(--berry);border-style:solid}
+.door:disabled{cursor:default}
+
+.event{background:var(--surface2);border-radius:14px;padding:10px 12px;margin:0 0 14px}
+.hello{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.hello .pstock{font-size:1.05rem}
+
+/* Zug-Kacheln für Mitspieler */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:2px solid var(--line);border-radius:18px;padding:12px;background:var(--bg);min-height:118px}
+.tile .te{font-size:2rem;line-height:1.1}
+.tile .tl{font-weight:600;font-size:1.05rem}
+.tile .td{color:var(--muted);font-size:.86rem;line-height:1.3}
+.tile.on{border-color:var(--berry);background:var(--surface2);box-shadow:0 0 0 2px var(--berry) inset}
+@media (prefers-reduced-motion:no-preference){.tile.on .te{animation:pop .35s ease-out}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.25) rotate(-6deg)}100%{transform:scale(1)}}
+.who{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.who button{border:2px solid var(--line);background:var(--bg);border-radius:999px;padding:8px 14px}
+.who button.on{border-color:var(--berry);background:var(--berry);color:var(--berry-ink);font-weight:600}
+.status{border-radius:14px;padding:10px 12px;margin-top:12px;background:var(--surface2)}
+.status.ok{border-left:5px solid var(--pista)}
+.voters{margin-top:12px;color:var(--muted);font-size:.95rem}
+
+/* Admin-Liste */
+.player{border-top:1px solid var(--line);padding:12px 0}
+.player:first-of-type{border-top:none}
+.prow{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.pname{font-weight:600;font-size:1.1rem}
+.pstock{color:var(--muted);font-size:.95rem;white-space:nowrap}
+.badge{font-size:.8rem;border-radius:999px;padding:2px 8px;background:var(--surface2);color:var(--muted);margin-left:6px;font-weight:500}
+.badge.ok{color:var(--pista)}
+.moves{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.moves label{display:flex;align-items:center;gap:6px;border:2px solid var(--line);border-radius:12px;padding:8px 10px;cursor:pointer;font-size:.98rem;background:var(--bg)}
+.moves input{position:absolute;opacity:0;pointer-events:none}
+.moves label:has(input:checked){border-color:var(--berry);background:var(--surface2);font-weight:600}
+.moves label:has(input:focus-visible){outline:3px solid var(--berry);outline-offset:2px}
+.target{margin-top:8px;display:flex;gap:8px;align-items:center;font-size:.95rem}
+.target select{flex:1;padding:8px;border-radius:10px;border:2px solid var(--line);background:var(--bg)}
+
+/* Würfel */
+.dice{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:8px 0}
+.die{aspect-ratio:1/1;border-radius:12px;border:2px solid var(--line);background:var(--bg);font-size:2rem;line-height:1;padding:0}
+.die.on{border-color:var(--berry);background:var(--berry);color:var(--berry-ink)}
+.bigdie{font-size:3rem;line-height:1;margin-right:8px;vertical-align:middle}
+.btn{border:none;border-radius:14px;padding:12px 16px;font-weight:600;background:var(--berry);color:var(--berry-ink);width:100%;font-size:1.05rem}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn2{border:2px solid var(--line);border-radius:14px;padding:10px 14px;background:transparent;font-weight:500}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.row>*{flex:1}
+.linkbtn{border:none;background:none;color:var(--muted);text-decoration:underline;padding:6px 0;font-size:.95rem}
+
+/* Rangliste */
+ol.rank{list-style:none;margin:0;padding:0}
+ol.rank li{display:grid;grid-template-columns:2rem 1fr auto;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+ol.rank li:first-child{border-top:none}
+ol.rank li.me{background:var(--surface2);border-radius:12px;padding-left:6px;padding-right:6px}
+.pos{font-weight:700;font-size:1.2rem;color:var(--muted)}
+ol.rank li:first-child .pos{color:var(--gold)}
+.title{display:block;color:var(--muted);font-size:.88rem}
+.stars{color:var(--gold);font-weight:600;white-space:nowrap}
+.cakes{color:var(--muted);font-size:.92rem;white-space:nowrap}
+
+.log{margin:0;padding-left:1.1rem}
+.log li{margin:3px 0}
+textarea{width:100%;min-height:150px;border-radius:12px;border:2px solid var(--line);background:var(--bg);padding:10px;font-family:inherit;font-size:.95rem;resize:vertical}
+.field{display:flex;gap:8px}
+.field input{flex:1;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);min-width:0}
+.field .btn{width:auto}
+.pin{letter-spacing:.5em;font-size:1.4rem;text-align:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border-radius:999px;padding:5px 6px 5px 12px}
+.chip button{border:none;background:var(--bg);border-radius:999px;min-width:26px;height:26px;padding:0 8px;line-height:1;font-size:.85rem}
+.note{color:var(--muted);font-size:.93rem}
+.error{color:var(--err);font-weight:500}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:500;z-index:20;max-width:90vw;text-align:center}
+details summary{cursor:pointer;font-weight:600}
+.rules li{margin:4px 0}
+footer{text-align:center;margin-top:24px}
+</style>
+</head>
+<body>
+<div id="app"><p class="note">Backstube wird geöffnet …</p></div>
+<script>
+(function(){
+'use strict';
+const app = document.getElementById('app');
+const MOVES = {safe:['🧁','Sicher backen'],oven:['🔥','Ofen hochdrehen'],nasch:['😋','Naschen'],deco:['⭐','Verzieren']};
+const FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+const LINK = location.origin + location.pathname;
+
+let S = null, voted = [], claimed = [], loadError = '', lastKey = '';
+let me = load('tb-me'), adminPin = load('tb-admin');
+let pinStage = null, pick = null, busy = false, viewRound = null, msg = '';
+let votes = {}, override = {}, dice = null, pendingRender = false;
+
+function load(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }
+function store(k, v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+const isAdminView = () => location.hash === '#backmeister';
+
+/* ---------- Server ---------- */
+async function rpc(fn, args){
+  const h = {'Content-Type':'application/json', apikey: SUPABASE_KEY};
+  if (SUPABASE_KEY.startsWith('eyJ')) h.Authorization = 'Bearer ' + SUPABASE_KEY;
+  let r;
+  try { r = await fetch(SUPABASE_URL.replace(/\/+$/,'') + '/rest/v1/rpc/' + fn, {method:'POST', headers:h, body:JSON.stringify(args || {})}); }
+  catch(e){ throw new Error('Keine Verbindung. Prüf dein Internet und versuch es noch einmal.'); }
+  const txt = await r.text(); let data = null;
+  try { data = txt ? JSON.parse(txt) : null; } catch(e){}
+  if (!r.ok) throw new Error((data && data.message) || 'Der Server hat nicht geantwortet (' + r.status + ').');
+  return data;
+}
+
+/* ---------- Spielregeln (wie in der Backmeister-App) ---------- */
+const dayOf = i => i >= 24 ? 24 : i + 1;
+const labelOf = i => i === 24 ? '24 (2. Zug)' : String(i + 1);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nameOf = id => ((S.players.find(p => p.id === id)) || {name:'?'}).name;
+function eventOf(i){
+  const d = dayOf(i);
+  if (d === 24) return {k:'xmas', t:'🎁 Bescherung: Heute gibt es zwei Züge hintereinander, danach wird abgerechnet.'};
+  if ([6,13,20].includes(d)) return {k:'sun', t:'🕯️ Adventssonntag: Wer den Ofen hochdreht, bekommt doppelt (+4 statt +2, bei einer 6 sogar +8).'};
+  if (d === 9) return {k:'power', t:'⚡ Stromausfall: Heute entscheidet der Würfel auch für alle, die sicher backen.'};
+  if (d === 16) return {k:'market', t:'🎪 Weihnachtsmarkt: Verzieren kostet heute nur 2 Törtchen.'};
+  return {k:'', t:'Normaler Backtag, kein Ereignis.'};
+}
+function moveHint(k, i){
+  const ev = eventOf(i).k;
+  if (k === 'safe') return ev === 'power' ? 'Heute zählt auch hier der Würfel. Schützt vor Naschern.' : '+1 Törtchen. Schützt vor Naschern.';
+  if (k === 'oven') return ev === 'sun' ? 'Würfel: 1 = −2, 2–5 = +4, 6 = +8' : 'Würfel: 1 = −2, 2–5 = +2, 6 = +4';
+  if (k === 'nasch') return 'Klau 1 Törtchen. Backt dein Opfer sicher, zahlst du 1.';
+  return ev === 'market' ? 'Heute: 2 Törtchen → 1 Stern' : '3 Törtchen → 1 Stern';
+}
+function titleOf(s){ return s >= 7 ? 'Meisterkonditor 👑' : s >= 5 ? 'Konditor' : s >= 3 ? 'Geselle' : s >= 1 ? 'Lehrling' : 'Küchenhilfe'; }
+function stockAfter(n){
+  const r = n > 0 ? S.rounds[n - 1] : null, out = {};
+  S.players.forEach(p => { const a = r && r.after[p.id]; out[p.id] = a ? {c:a.c, s:a.s} : {c:S.start, s:0}; });
+  return out;
+}
+function ranking(stock){
+  const list = S.players.map(p => ({id:p.id, name:p.name, ...stock[p.id]}));
+  list.sort((a,b) => b.s - a.s || b.c - a.c || a.name.localeCompare(b.name));
+  let pos = 0; list.forEach((e,i) => { if (i === 0 || e.s !== list[i-1].s || e.c !== list[i-1].c) pos = i + 1; e.pos = pos; });
+  return list;
+}
+function evaluate(stock, moves, d, roundIdx){
+  const st = JSON.parse(JSON.stringify(stock)), log = [], ev = eventOf(roundIdx).k;
+  const mv = id => (moves[id] && moves[id].m) || 'safe';
+  S.players.forEach(p => {
+    if (mv(p.id) !== 'nasch') return;
+    const t = moves[p.id].t;
+    if (!t || t === p.id || !st[t]) { log.push(`😋 ${p.name} hat niemanden zum Naschen genannt, kein Effekt.`); return; }
+    if (mv(t) === 'safe') {
+      if (st[p.id].c > 0) { st[p.id].c--; st[t].c++; log.push(`🛡️ ${nameOf(t)} hat ${p.name} beim Naschen erwischt und bekommt 1 Törtchen!`); }
+      else log.push(`🛡️ ${nameOf(t)} hat ${p.name} erwischt, aber bei ${p.name} war nichts zu holen.`);
+    } else if (st[t].c > 0) { st[t].c--; st[p.id].c++; log.push(`😋 ${p.name} nascht 1 Törtchen bei ${nameOf(t)}.`); }
+    else log.push(`😋 ${p.name} wollte bei ${nameOf(t)} naschen, aber das Blech war leer.`);
+  });
+  let gain = d === 1 ? -2 : d === 6 ? 4 : 2;
+  if (ev === 'sun' && d > 1) gain *= 2;
+  const ovenText = d === 1 ? 'verbrannt, −2' : `+${gain}`;
+  S.players.forEach(p => {
+    const m = mv(p.id);
+    if (m === 'safe') {
+      if (ev === 'power') { st[p.id].c = Math.max(0, st[p.id].c + gain); log.push(`⚡ ${p.name} backt sicher, aber der Stromausfall zählt: ${ovenText}.`); }
+      else st[p.id].c += 1;
+    } else if (m === 'oven') {
+      st[p.id].c = Math.max(0, st[p.id].c + gain);
+      log.push(d === 1 ? `🔥 ${p.name}: Ofen hochgedreht und alles verbrannt (−2).` : `🔥 ${p.name}: Ofen hochgedreht, ${ovenText} Törtchen.`);
+    }
+  });
+  const cost = ev === 'market' ? 2 : 3;
+  S.players.forEach(p => {
+    if (mv(p.id) !== 'deco') return;
+    if (st[p.id].c >= cost) { st[p.id].c -= cost; st[p.id].s++; log.push(`⭐ ${p.name} verziert ${cost} Törtchen zu einem Stern.`); }
+    else log.push(`⭐ ${p.name} wollte verzieren, hatte aber nicht genug Törtchen.`);
+  });
+  return {after:st, log};
+}
+function rankText(n){
+  const r = S.rounds[n - 1], list = ranking(stockAfter(n)), end = n === 25;
+  let t = end ? '🎄 ENDSTAND DER TÖRTCHEN-BACKSTUBE 🎄\n' : `🏆 STAND NACH TÜRCHEN ${labelOf(n - 1)} (Wurf: 🎲${r.dice})\n`;
+  list.forEach(e => { t += `${e.pos}. ${e.name} – ⭐${e.s} 🧁${e.c} (${titleOf(e.s)})\n`; });
+  const hi = r.log.filter(l => /^(🛡️|😋|🔥 .*verbrannt)/.test(l));
+  if (hi.length) t += '\n' + hi.join('\n') + '\n';
+  if (end && list.length) {
+    const win = list.filter(e => e.pos === 1).map(e => e.name).join(' & ');
+    t += `\n👑 Herzlichen Glückwunsch, ${win}! Frohe Weihnachten! 🎅`;
+  } else t += `\nDas nächste Türchen ist offen: ${LINK}`;
+  return t.trim();
+}
+function doorText(i){
+  const d = dayOf(i), ev = eventOf(i);
+  const head = i === 24 ? '🎁 BESCHERUNG – ZWEITER ZUG 🎁' : `🚪 TÜRCHEN ${d} IST OFFEN 🚪`;
+  return `${head}\n${ev.t}\n\nGib deinen Zug bis 20 Uhr ab:\n${LINK}`;
+}
+
+/* ---------- Anzeige ---------- */
+function header(){
+  return `<h1>🧁 Törtchen-Backstube</h1><p class="sub">${isAdminView() ? 'Backmeister-Bereich' : 'Adventsspiel vom 1. bis 24. Dezember'}</p>`;
+}
+function doorsHtml(n, over){
+  let h = '<div class="doors" role="list">';
+  for (let d = 1; d <= 24; d++) {
+    const doneIdx = d === 24 ? (n >= 25 ? 24 : -1) : (n >= d ? d - 1 : -1);
+    const now = !over && dayOf(n) === d;
+    const sel = viewRound !== null && dayOf(viewRound) === d;
+    h += `<button class="door${doneIdx >= 0 ? ' done' : ''}${now ? ' now' : ''}${sel ? ' sel' : ''}" role="listitem" ${doneIdx >= 0 ? `data-view="${doneIdx}" aria-label="Türchen ${d} ansehen"` : (now ? 'disabled aria-label="Heutiges Türchen ' + d + '"' : 'disabled')}>${doneIdx >= 0 ? '🧁' : d}</button>`;
+  }
+  return h + '</div>';
+}
+function reviewHtml(){
+  if (viewRound === null || !S.rounds[viewRound]) return '';
+  const r = S.rounds[viewRound];
+  const picks = S.players.map(p => { const m = (r.moves[p.id] || {m:'safe'}); return `${esc(p.name)}: ${MOVES[m.m] ? MOVES[m.m][0] : '🧁'}${m.m === 'nasch' && m.t ? ' bei ' + esc(nameOf(m.t)) : ''}`; }).join(' · ');
+  return `<section><h2>Türchen ${labelOf(viewRound)} <span class="bigdie" aria-label="Wurf ${r.dice}">${FACES[r.dice - 1]}</span></h2>
+    <ul class="log">${r.log.length ? r.log.map(l => `<li>${esc(l)}</li>`).join('') : '<li>Alle haben sicher gebacken oder verziert, ohne Zwischenfälle.</li>'}</ul>
+    <p class="note" style="margin-top:10px">Gewählt: ${picks}</p>
+    <div class="row"><button class="btn2" data-act="closeview">Schließen</button></div></section>`;
+}
+function rankHtml(n, over){
+  if (!S.players.length) return '';
+  let h = `<section><h2>${over ? 'Endstand' : 'Rangliste'}</h2><ol class="rank">`;
+  ranking(stockAfter(n)).forEach(e => {
+    h += `<li class="${me && me.id === e.id && !isAdminView() ? 'me' : ''}"><span class="pos">${e.pos}.</span><span>${esc(e.name)}<span class="title">${esc(titleOf(e.s))}</span></span><span><span class="stars">⭐ ${e.s}</span> <span class="cakes">🧁 ${e.c}</span></span></li>`;
+  });
+  return h + '</ol></section>';
+}
+function rulesHtml(){
+  return `<section><details><summary>Spielregeln</summary><ul class="rules">
+    <li>Jeder startet mit ${S.start} Törtchen. Jeden Tag öffnet sich ein Türchen und jeder wählt einen Zug.</li>
+    <li>🧁 <b>Sicher backen:</b> +1 Törtchen. Wer bei dir nascht, wird erwischt und muss dir 1 Törtchen geben.</li>
+    <li>🔥 <b>Ofen hochdrehen:</b> Der Ofenwurf entscheidet: 1 = alles verbrannt (−2), 2–5 = +2, 6 = +4.</li>
+    <li>😋 <b>Naschen:</b> Du klaust 1 Törtchen bei jemandem, außer er backt gerade sicher.</li>
+    <li>⭐ <b>Verzieren:</b> 3 Törtchen werden zu einem Stern. Sterne zählen für die Rangliste.</li>
+    <li>Wer nicht abstimmt, backt automatisch sicher. Abends wertet der Backmeister aus.</li>
+    <li>Sonderereignisse: Adventssonntage, Stromausfall am 9., Weihnachtsmarkt am 16. und am 24. zwei Züge.</li>
+  </ul></details></section>`;
+}
+
+function render(force){
+  const ae = document.activeElement;
+  if (!force && ae && app.contains(ae) && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName)) { pendingRender = true; return; }
+  pendingRender = false;
+  let h = header();
+  if (!SUPABASE_URL.startsWith('http') || SUPABASE_KEY.startsWith('HIER')) {
+    app.innerHTML = h + '<section><h2>Noch nicht eingerichtet</h2><p>Trag oben in der Datei <b>index.html</b> die Supabase-Adresse und den Schlüssel ein (SUPABASE_URL und SUPABASE_KEY).</p></section>';
+    return;
+  }
+  if (!S) { app.innerHTML = h + (loadError ? `<section><p class="error">${esc(loadError)}</p><button class="btn" data-act="reload">Noch einmal versuchen</button></section>` : '<p class="note">Backstube wird geöffnet …</p>'); return; }
+  const n = S.rounds.length, over = n >= 25;
+  h += doorsHtml(n, over) + reviewHtml();
+  h += isAdminView() ? adminHtml(n, over) : playerHtml(n, over);
+  h += rankHtml(n, over);
+  if (!isAdminView()) h += rulesHtml();
+  if (msg) h += `<p class="error" role="alert">${esc(msg)}</p>`;
+  h += `<footer>${isAdminView() ? '<a class="linkbtn" href="#">Zur Spieleransicht</a>' : '<a class="linkbtn" href="#backmeister">Backmeister</a>'}</footer>`;
+  app.innerHTML = h;
+}
+
+/* ---------- Mitspieler ---------- */
+function playerHtml(n, over){
+  const meP = me && S.players.find(p => p.id === me.id);
+  if (!meP) {
+    if (pinStage) {
+      const isNew = !claimed.includes(pinStage);
+      return `<section><h2>Hallo ${esc(nameOf(pinStage))}!</h2>
+        <p>${isNew ? 'Leg dir eine 4-stellige PIN fest. Damit kann niemand anderes für dich abstimmen.' : 'Gib deine 4-stellige PIN ein.'}</p>
+        <div class="field"><input id="pin" class="pin" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-label="PIN"><button class="btn" data-act="pin" ${busy ? 'disabled' : ''}>${isNew ? 'Festlegen' : 'Weiter'}</button></div>
+        <div class="row"><button class="linkbtn" data-act="backpick">Anderer Name</button></div></section>`;
+    }
+    if (!S.players.length) return '<section><h2>Gleich geht’s los</h2><p>Der Backmeister trägt gerade die Mitspieler ein. Schau später noch einmal vorbei.</p></section>';
+    return `<section><h2>Wer bist du?</h2><p class="note">Tipp auf deinen Namen. Das Handy merkt sich das.</p>
+      <div class="who">${S.players.map(p => `<button data-who="${p.id}">${esc(p.name)}</button>`).join('')}</div></section>`;
+  }
+  const cur = stockAfter(n)[meP.id];
+  let h = `<section><div class="hello"><h2>Hallo ${esc(meP.name)}!</h2><span class="pstock">⭐ ${cur.s} · 🧁 ${cur.c}</span></div>`;
+  if (n > 0) {
+    const prev = stockAfter(n - 1)[meP.id], r = S.rounds[n - 1];
+    const dc = cur.c - prev.c, ds = cur.s - prev.s;
+    const mine = r.log.filter(l => l.includes(meP.name));
+    h += `<p class="note">Türchen ${labelOf(n - 1)} (🎲${r.dice}): ${ds ? `⭐ +${ds} ` : ''}🧁 ${dc >= 0 ? '+' : '−'}${Math.abs(dc)}${mine.length ? ' · ' + mine.map(esc).join(' ') : ''}</p>`;
+  }
+  h += '</section>';
+  if (over) return h + '<section><h2>🎄 Das Spiel ist vorbei</h2><p>Danke fürs Mitbacken und frohe Weihnachten!</p></section>';
+  if (S.players.length < 2) return h + '<section><p>Es fehlen noch Mitspieler. Der Backmeister lädt gerade ein.</p></section>';
+
+  const myVote = load('tb-vote') && load('tb-vote').r === n ? load('tb-vote') : null;
+  if (!pick || pick.r !== n) pick = myVote ? {r:n, m:myVote.m, t:myVote.t} : {r:n, m:null, t:null};
+  const hasVoted = voted.includes(meP.id);
+  h += `<section><h2>${n === 24 ? '🎁 Bescherung: zweiter Zug' : `Türchen ${dayOf(n)}${n === 23 ? ': erster Zug' : ''}`}</h2><div class="event">${esc(eventOf(n).t)}</div>`;
+  h += '<div class="tiles">' + Object.entries(MOVES).map(([k,[e,l]]) =>
+    `<button class="tile${pick.m === k ? ' on' : ''}" data-move="${k}" aria-pressed="${pick.m === k}"><span class="te" aria-hidden="true">${e}</span><span class="tl">${l}</span><span class="td">${moveHint(k, n)}</span></button>`).join('') + '</div>';
+  if (pick.m === 'nasch') {
+    h += `<p style="margin:12px 0 0">Bei wem willst du naschen?</p><div class="who">${S.players.filter(p => p.id !== meP.id).map(p => `<button class="${pick.t === p.id ? 'on' : ''}" data-target="${p.id}">${esc(p.name)}</button>`).join('')}</div>`;
+  }
+  const changed = !myVote || myVote.m !== pick.m || myVote.t !== pick.t;
+  const ready = pick.m && (pick.m !== 'nasch' || pick.t);
+  if (!hasVoted || changed) h += `<div class="row"><button class="btn" data-act="vote" ${ready && !busy ? '' : 'disabled'}>${busy ? 'Wird abgegeben …' : hasVoted ? 'Zug ändern' : 'Zug abgeben'}</button></div>`;
+  if (hasVoted && myVote && !changed) h += `<div class="status ok">✓ Abgegeben: ${MOVES[myVote.m][0]} ${MOVES[myVote.m][1]}${myVote.t ? ' bei ' + esc(nameOf(myVote.t)) : ''}. Bis zur Auswertung kannst du noch umentscheiden.</div>`;
+  else if (hasVoted && !myVote) h += '<div class="status ok">✓ Du hast für dieses Türchen schon abgestimmt. Du kannst deinen Zug hier neu wählen.</div>';
+  else if (!hasVoted) h += '<p class="note" style="margin-top:10px">Wer nicht abstimmt, backt automatisch sicher.</p>';
+  const vn = S.players.filter(p => voted.includes(p.id)).map(p => esc(p.name));
+  h += `<p class="voters">Schon abgestimmt (${vn.length} von ${S.players.length}): ${vn.length ? vn.join(', ') : 'noch niemand'}</p></section>`;
+  h += `<p style="text-align:center"><button class="linkbtn" data-act="logout">Nicht ${esc(meP.name)}? Abmelden</button></p>`;
+  return h;
+}
+
+/* ---------- Backmeister ---------- */
+function adminHtml(n, over){
+  if (!adminPin) {
+    return `<section><h2>Backmeister-Anmeldung</h2><p>Gib die Backmeister-PIN ein, die du in Supabase festgelegt hast.</p>
+      <div class="field"><input id="apin" type="password" inputmode="numeric" autocomplete="off" aria-label="Backmeister-PIN"><button class="btn" data-act="alogin" ${busy ? 'disabled' : ''}>Anmelden</button></div></section>`;
+  }
+  const cur = stockAfter(n);
+  let h = '';
+  if (!over && S.players.length >= 2) {
+    h += `<section><h2>${n === 24 ? 'Bescherung: zweiter Zug' : `Türchen ${dayOf(n)}${n === 23 ? ': erster Zug' : ''}`}</h2><div class="event">${esc(eventOf(n).t)}</div>`;
+    const cnt = S.players.filter(p => votes[p.id]).length;
+    h += `<p class="note">${cnt} von ${S.players.length} haben abgestimmt. Du kannst Züge ändern oder für jemanden eintragen, der per WhatsApp geantwortet hat. Wer nichts gewählt hat, backt sicher.</p>`;
+    S.players.forEach(p => {
+      const dm = override[p.id] || votes[p.id] || {m:'safe'};
+      h += `<div class="player"><div class="prow"><span class="pname">${esc(p.name)}${votes[p.id] ? '<span class="badge ok">✓ abgestimmt</span>' : '<span class="badge">offen</span>'}${override[p.id] ? '<span class="badge">geändert</span>' : ''}</span><span class="pstock">⭐ ${cur[p.id].s} · 🧁 ${cur[p.id].c}</span></div><div class="moves">`;
+      Object.entries(MOVES).forEach(([k,[e,l]]) => { h += `<label><input type="radio" name="m_${p.id}" value="${k}" data-pid="${p.id}" ${dm.m === k ? 'checked' : ''}>${e} ${l}</label>`; });
+      h += '</div>';
+      if (dm.m === 'nasch') h += `<div class="target"><span>bei</span><select data-tsel="${p.id}" aria-label="Wen nascht ${esc(p.name)}?"><option value="">Wen?</option>${S.players.filter(o => o.id !== p.id).map(o => `<option value="${o.id}" ${dm.t === o.id ? 'selected' : ''}>${esc(o.name)}</option>`).join('')}</select></div>`;
+      h += '</div>';
+    });
+    h += `<h2 style="margin-top:14px">Ofenwurf</h2><p class="note">Lass die App würfeln oder tipp an, was du selbst gewürfelt hast.</p><div class="dice">${FACES.map((f,i) => `<button class="die${dice === i + 1 ? ' on' : ''}" data-die="${i + 1}" aria-label="Wurf ${i + 1}">${f}</button>`).join('')}</div>`;
+    h += `<div class="row"><button class="btn2" data-act="roll">🎲 Zufällig würfeln</button></div>`;
+    h += `<div class="row"><button class="btn" data-act="eval" ${dice && !busy ? '' : 'disabled'}>${busy ? 'Wird gespeichert …' : `Türchen ${labelOf(n)} auswerten`}</button></div></section>`;
+  }
+  if (S.players.length >= 2) {
+    h += '<section><h2>Für WhatsApp</h2>';
+    if (n > 0) h += `<p class="note">Ergebnis von Türchen ${labelOf(n - 1)}:</p><textarea id="t_rank" readonly>${esc(rankText(n))}</textarea><div class="row"><button class="btn2" data-copy="t_rank">📋 Rangliste kopieren</button></div>`;
+    if (!over) h += `<p class="note" style="margin-top:14px">Nachricht zum Öffnen von Türchen ${labelOf(n)}:</p><textarea id="t_door" readonly>${esc(doorText(n))}</textarea><div class="row"><button class="btn2" data-copy="t_door">📋 Türchen-Text kopieren</button></div>`;
+    if (n > 0) h += `<div class="row"><button class="btn2" data-act="undo" ${busy ? 'disabled' : ''}>↩️ Türchen ${labelOf(n - 1)} rückgängig machen</button></div>`;
+    h += '</section>';
+  }
+  h += `<section><details ${S.players.length < 2 ? 'open' : ''}><summary>Mitspieler (${S.players.length})</summary>
+    <p class="note" style="margin-top:8px">Jeder startet mit ${S.start} Törtchen. „PIN zurücksetzen“ hilft, wenn jemand seine PIN vergessen hat.</p>
+    <div class="field"><input id="newp" placeholder="Name" maxlength="24" aria-label="Name des Mitspielers"><button class="btn" data-act="add" ${busy ? 'disabled' : ''}>Hinzufügen</button></div>
+    <div class="chips">${S.players.map(p => `<span class="chip">${esc(p.name)}${claimed.includes(p.id) ? ` <button data-reset="${p.id}" aria-label="PIN von ${esc(p.name)} zurücksetzen">PIN ↺</button>` : ''}<button data-del="${p.id}" aria-label="${esc(p.name)} entfernen">✕</button></span>`).join('')}</div>
+  </details></section>`;
+  h += `<p style="text-align:center"><button class="linkbtn" data-act="alogout">Backmeister abmelden</button></p>`;
+  return h;
+}
+
+/* ---------- Aktionen ---------- */
+function toast(t){ const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2200); }
+async function copy(id){
+  const ta = document.getElementById(id); if (!ta) return;
+  try { await navigator.clipboard.writeText(ta.value); toast('Kopiert ✓'); return; } catch(e){}
+  ta.focus(); ta.select();
+  try { if (document.execCommand('copy')) { toast('Kopiert ✓'); return; } } catch(e){}
+  toast('Text ist markiert, bitte selbst kopieren');
+}
+async function run(fn){
+  busy = true; msg = ''; render(true);
+  try { await fn(); } catch(e) { msg = e.message; }
+  busy = false; await refresh(true);
+}
+async function saveState(next){
+  await rpc('admin_save_state', {p_pin:adminPin, p_state:next, p_expected_rounds:S.rounds.length});
+}
+async function loadVotes(){
+  try { votes = await rpc('admin_get_votes', {p_pin:adminPin}) || {}; }
+  catch(e){ if (/PIN/.test(e.message)) { adminPin = null; store('tb-admin', null); msg = e.message; } }
+}
+async function refresh(force){
+  try {
+    const d = await rpc('get_state');
+    loadError = '';
+    const before = lastKey + JSON.stringify(votes);
+    S = d.state; voted = d.voted || []; claimed = d.claimed || [];
+    if (isAdminView() && adminPin) await loadVotes();
+    lastKey = JSON.stringify(d);
+    if (force || before !== lastKey + JSON.stringify(votes)) render(force);
+  } catch(e) { loadError = e.message; if (!S || force) render(true); }
+}
+
+app.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.view !== undefined) { viewRound = +b.dataset.view; render(true); return; }
+  if (b.dataset.who) { pinStage = b.dataset.who; render(true); const i = document.getElementById('pin'); if (i) i.focus(); return; }
+  if (b.dataset.move) { pick.m = b.dataset.move; if (pick.m !== 'nasch') pick.t = null; render(true); return; }
+  if (b.dataset.target) { pick.t = b.dataset.target; render(true); return; }
+  if (b.dataset.die) { dice = +b.dataset.die; render(true); return; }
+  if (b.dataset.copy) { copy(b.dataset.copy); return; }
+  if (b.dataset.del) {
+    const id = b.dataset.del;
+    if (!confirm(`${nameOf(id)} wirklich aus dem Spiel nehmen?`)) return;
+    run(async () => { const next = JSON.parse(JSON.stringify(S)); next.players = next.players.filter(p => p.id !== id); await saveState(next); });
+    return;
+  }
+  if (b.dataset.reset) {
+    const id = b.dataset.reset;
+    if (!confirm(`PIN von ${nameOf(id)} zurücksetzen? Beim nächsten Öffnen legt ${nameOf(id)} eine neue fest.`)) return;
+    run(async () => { await rpc('admin_reset_pin', {p_pin:adminPin, p_player:id}); toast('PIN zurückgesetzt'); });
+    return;
+  }
+  const a = b.dataset.act;
+  if (a === 'closeview') { viewRound = null; render(true); }
+  else if (a === 'reload') refresh(true);
+  else if (a === 'backpick') { pinStage = null; render(true); }
+  else if (a === 'logout') { me = null; store('tb-me', null); store('tb-vote', null); pick = null; render(true); }
+  else if (a === 'alogout') { adminPin = null; store('tb-admin', null); votes = {}; render(true); }
+  else if (a === 'pin') doPin();
+  else if (a === 'alogin') doAdminLogin();
+  else if (a === 'vote') {
+    const n = S.rounds.length, choice = {r:n, m:pick.m, t:pick.m === 'nasch' ? pick.t : null};
+    run(async () => {
+      await rpc('cast_vote', {p_player:me.id, p_pin:me.pin, p_round:n, p_move:choice.m, p_target:choice.t});
+      store('tb-vote', choice); toast('Zug abgegeben ✓');
+    });
+  }
+  else if (a === 'roll') { dice = 1 + Math.floor(Math.random() * 6); render(true); }
+  else if (a === 'add') addPlayer();
+  else if (a === 'undo') {
+    if (!confirm('Das letzte Türchen wirklich rückgängig machen?')) return;
+    run(async () => { const next = JSON.parse(JSON.stringify(S)); next.rounds.pop(); await saveState(next); override = {}; dice = null; });
+  }
+  else if (a === 'eval') {
+    const n = S.rounds.length;
+    const eff = id => override[id] || votes[id] || {m:'safe'};
+    const missing = S.players.filter(p => eff(p.id).m === 'nasch' && !eff(p.id).t);
+    if (missing.length && !confirm(`${missing.map(p => p.name).join(', ')} hat beim Naschen niemanden ausgewählt. Trotzdem auswerten?`)) return;
+    const moves = {}; S.players.forEach(p => { const m = eff(p.id); moves[p.id] = {m:m.m, t:m.t || null}; });
+    const res = evaluate(stockAfter(n), moves, dice, n);
+    const next = JSON.parse(JSON.stringify(S));
+    next.rounds.push({moves, dice, log:res.log, after:res.after});
+    run(async () => { await saveState(next); override = {}; dice = null; votes = {}; toast(`Türchen ${labelOf(n)} ausgewertet ✓`); });
+  }
+});
+app.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.pid) { const prev = override[t.dataset.pid] || votes[t.dataset.pid] || {}; override[t.dataset.pid] = {m:t.value, t:t.value === 'nasch' ? prev.t || null : null}; render(true); }
+  else if (t.dataset.tsel) { override[t.dataset.tsel] = {m:'nasch', t:t.value || null}; render(true); }
+});
+app.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (e.target.id === 'newp') { e.preventDefault(); addPlayer(); }
+  else if (e.target.id === 'pin') { e.preventDefault(); doPin(); }
+  else if (e.target.id === 'apin') { e.preventDefault(); doAdminLogin(); }
+});
+app.addEventListener('focusout', () => { setTimeout(() => { if (pendingRender) render(); }, 0); });
+
+function doPin(){
+  const pin = (document.getElementById('pin').value || '').trim();
+  if (!/^\d{4}$/.test(pin)) { msg = 'Die PIN muss genau 4 Ziffern haben.'; render(true); return; }
+  const id = pinStage;
+  run(async () => {
+    const ok = await rpc('claim_player', {p_player:id, p_pin:pin});
+    if (!ok) throw new Error('Die PIN stimmt nicht. Wenn du sie vergessen hast, kann der Backmeister sie zurücksetzen.');
+    me = {id, pin}; store('tb-me', me); store('tb-vote', null); pick = null; pinStage = null;
+  });
+}
+function doAdminLogin(){
+  const pin = (document.getElementById('apin').value || '').trim();
+  if (!pin) return;
+  run(async () => { votes = await rpc('admin_get_votes', {p_pin:pin}) || {}; adminPin = pin; store('tb-admin', pin); });
+}
+function addPlayer(){
+  const inp = document.getElementById('newp'), name = (inp.value || '').trim();
+  if (!name) { inp.focus(); return; }
+  if (S.players.some(p => p.name.toLowerCase() === name.toLowerCase())) { toast('Den Namen gibt es schon'); return; }
+  const next = JSON.parse(JSON.stringify(S));
+  next.players.push({id:'p' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), name});
+  run(() => saveState(next));
+}
+
+window.addEventListener('hashchange', () => { viewRound = null; msg = ''; refresh(true); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+setInterval(() => { if (!document.hidden && !busy) refresh(); }, 15000);
+render(true);
+if (SUPABASE_URL.startsWith('http') && !SUPABASE_KEY.startsWith('HIER')) refresh(true);
+})();
+</script>
+</body>
+</html>
