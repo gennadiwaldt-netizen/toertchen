@@ -425,6 +425,15 @@ async function refresh(force){
     const before = lastKey + JSON.stringify(votes);
     S = d.state; voted = d.voted || []; claimed = d.claimed || [];
     if (isAdminView() && adminPin) await loadVotes();
+    if (!isAdminView() && me && voted.includes(me.id)) {
+      const n = S.rounds.length, lv = load('tb-vote');
+      if (!lv || lv.r !== n) {
+        try {
+          const v = await rpc('get_my_vote', {p_player:me.id, p_pin:me.pin});
+          if (v && v.m && v.r === n) { store('tb-vote', {r:n, m:v.m, t:v.t || null}); pick = null; force = true; }
+        } catch(e) {}
+      }
+    }
     lastKey = JSON.stringify(d);
     if (force || before !== lastKey + JSON.stringify(votes)) render(force);
   } catch(e) { loadError = e.message; if (!S || force) render(true); }
