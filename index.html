@@ -126,7 +126,7 @@ textarea{width:100%;min-height:150px;border-radius:12px;border:2px solid var(--l
 .error{color:var(--err);font-weight:500}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:500;z-index:20;max-width:90vw;text-align:center}
 details summary{cursor:pointer;font-weight:600}
-.rules li{margin:4px 0}
+.rules h3{font-size:1.05rem;margin:16px 0 6px}.rules ul{margin:0 0 6px;padding-left:1.2rem}.rules li{margin:4px 0}.rules p{margin:0 0 6px}
 footer{text-align:center;margin-top:24px}
 </style>
 </head>
@@ -278,17 +278,54 @@ function rankHtml(n, over){
   return h + '</ol></section>';
 }
 function rulesHtml(){
-  return `<section><details><summary>Spielregeln</summary><ul class="rules">
-    <li>Jeder startet mit ${S.start} Törtchen. Jeden Tag öffnet sich ein Türchen und jeder wählt einen Zug.</li>
-    <li>🧁 <b>Sicher backen:</b> +1 Törtchen. Wer bei dir nascht, wird erwischt und muss dir 1 Törtchen geben.</li>
-    <li>🔥 <b>Ofen hochdrehen:</b> Der Ofenwurf entscheidet: 1 = alles verbrannt (−2), 2–5 = +2, 6 = +4.</li>
-    <li>😋 <b>Naschen:</b> Du klaust 1 Törtchen bei jemandem, außer er backt gerade sicher.</li>
-    <li>⭐ <b>Verzieren:</b> 3 Törtchen werden zu einem Stern. Sterne zählen für die Rangliste.</li>
-    <li>Wer nicht abstimmt, backt automatisch sicher. Abends wertet der Backmeister aus.</li>
-    <li>Sonderereignisse: Adventssonntage, Stromausfall am 9., Weihnachtsmarkt am 16. und am 24. zwei Züge.</li>
-  </ul></details></section>`;
+  return `<section><details><summary>Spielregeln</summary><div class="rules">
+    <h3>🎯 Ziel</h3>
+    <p>Wer am Ende die meisten <b>Sterne ⭐</b> hat, wird Meisterkonditor. Bei gleich vielen Sternen gewinnt, wer mehr <b>Törtchen 🧁</b> übrig hat. Ist auch das gleich, teilt ihr euch den Platz.</p>
+    <h3>🗓️ Ablauf</h3>
+    <ul>
+      <li>Jeder startet mit <b>${S.start} Törtchen</b> und 0 Sternen.</li>
+      <li>Vom 1. bis 24. Dezember öffnet sich jeden Tag ein Türchen. Du wählst <b>einen Zug</b> und gibst ihn bis <b>20 Uhr</b> ab.</li>
+      <li>Dein Zug ist geheim. Die anderen sehen nur, <i>dass</i> du abgestimmt hast. Bis zur Auswertung kannst du ihn noch ändern.</li>
+      <li>Wer nicht abstimmt, <b>backt automatisch sicher</b>.</li>
+      <li>Abends würfelt der Backmeister den <b>Ofenwurf</b> (ein Wurf für alle) und wertet aus. Danach siehst du hier, was passiert ist.</li>
+    </ul>
+    <h3>🧁 Sicher backen</h3>
+    <ul>
+      <li>Du bekommst <b>+1 Törtchen</b>.</li>
+      <li>Du bist geschützt: Wer bei dir naschen will, wird erwischt und muss <b>dir 1 Törtchen geben</b>.</li>
+    </ul>
+    <h3>🔥 Ofen hochdrehen</h3>
+    <ul>
+      <li>Der Ofenwurf entscheidet: <b>1</b> = alles verbrannt, <b>−2</b> Törtchen · <b>2–5</b> = <b>+2</b> · <b>6</b> = <b>+4</b>.</li>
+      <li>Weniger als 0 Törtchen geht nicht.</li>
+      <li>Aber Vorsicht: Wer den Ofen hochdreht, ist <b>nicht</b> vor Naschern geschützt.</li>
+    </ul>
+    <h3>😋 Naschen</h3>
+    <ul>
+      <li>Du wählst einen Mitspieler und klaust ihm <b>1 Törtchen</b>.</li>
+      <li>Backt er an dem Tag <b>sicher</b>, wirst du erwischt und musst <b>ihm 1 Törtchen geben</b>.</li>
+      <li>Hat er gar keine Törtchen, gehst du leer aus.</li>
+      <li>Mehrere Spieler dürfen beim selben naschen.</li>
+    </ul>
+    <h3>⭐ Verzieren</h3>
+    <ul>
+      <li>Du machst aus <b>3 Törtchen 1 Stern</b>. Mehr als ein Stern pro Tag geht nicht.</li>
+      <li>Hast du nicht genug Törtchen, passiert nichts und deine Törtchen bleiben dir.</li>
+      <li>Sterne kann man nicht klauen und nicht verlieren.</li>
+    </ul>
+    <h3>⚙️ Reihenfolge der Auswertung</h3>
+    <p>1. <b>Naschen</b> → 2. <b>Backen und Ofen</b> → 3. <b>Verzieren</b>. Was du am selben Tag ernaschst oder erbackst, kannst du also gleich verzieren. Umgekehrt kann dir ein Nascher noch das Törtchen wegschnappen, das dir zum Verzieren gefehlt hätte.</p>
+    <h3>🎉 Besondere Tage</h3>
+    <ul>
+      <li><b>6., 13. und 20.: Adventssonntag.</b> Ofen hochdrehen bringt doppelt: +4 statt +2, bei einer 6 sogar +8. Eine 1 bleibt −2.</li>
+      <li><b>9.: Stromausfall.</b> Auch wer sicher backt, bekommt das Ergebnis des Ofenwurfs statt +1. Der Schutz vor Naschern bleibt.</li>
+      <li><b>16.: Weihnachtsmarkt.</b> Verzieren kostet nur 2 Törtchen.</li>
+      <li><b>24.: Bescherung.</b> Zwei Züge hintereinander, jeder mit eigenem Ofenwurf. Danach steht der Sieger fest.</li>
+    </ul>
+    <h3>🏅 Titel</h3>
+    <p>0 Sterne: Küchenhilfe · ab 1: Lehrling · ab 3: Geselle · ab 5: Konditor · ab 7: Meisterkonditor 👑</p>
+  </div></details></section>`;
 }
-
 function render(force){
   const ae = document.activeElement;
   if (!force && ae && app.contains(ae) && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName)) { pendingRender = true; return; }
