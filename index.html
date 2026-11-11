@@ -171,13 +171,13 @@ function eventOf(i){
   const d = dayOf(i);
   if (d === 24) return {k:'xmas', t:'🎁 Bescherung: Heute gibt es zwei Züge hintereinander, danach wird abgerechnet.'};
   if ([6,13,20].includes(d)) return {k:'sun', t:'🕯️ Adventssonntag: Wer den Ofen hochdreht, bekommt doppelt (+4 statt +2, bei einer 6 sogar +8).'};
-  if (d === 9) return {k:'power', t:'⚡ Stromausfall: Heute entscheidet der Würfel auch für alle, die sicher backen.'};
+  if (d === 9) return {k:'power', t:'⚡ Stromausfall: Wer sicher backt, bekommt heute nicht +1, sondern wie beim Ofen das Ergebnis des Ofenwurfs (1 = −2, 2–5 = +2, 6 = +4). Der Schutz vor Naschern bleibt.'};
   if (d === 16) return {k:'market', t:'🎪 Weihnachtsmarkt: Verzieren kostet heute nur 2 Törtchen.'};
   return {k:'', t:'Normaler Backtag, kein Ereignis.'};
 }
 function moveHint(k, i){
   const ev = eventOf(i).k;
-  if (k === 'safe') return ev === 'power' ? 'Heute zählt auch hier der Würfel. Schützt vor Naschern.' : '+1 Törtchen. Schützt vor Naschern.';
+  if (k === 'safe') return ev === 'power' ? 'Heute statt +1 der Ofenwurf: 1 = −2, 2–5 = +2, 6 = +4. Schützt weiter vor Naschern.' : '+1 Törtchen. Schützt vor Naschern.';
   if (k === 'oven') return ev === 'sun' ? 'Würfel: 1 = −2, 2–5 = +4, 6 = +8' : 'Würfel: 1 = −2, 2–5 = +2, 6 = +4';
   if (k === 'nasch') return 'Klau 1 Törtchen. Backt dein Opfer sicher, zahlst du 1.';
   return ev === 'market' ? 'Heute: 2 Törtchen → 1 Stern' : '3 Törtchen → 1 Stern';
@@ -318,7 +318,7 @@ function rulesHtml(){
     <h3>🎉 Besondere Tage</h3>
     <ul>
       <li><b>6., 13. und 20.: Adventssonntag.</b> Ofen hochdrehen bringt doppelt: +4 statt +2, bei einer 6 sogar +8. Eine 1 bleibt −2.</li>
-      <li><b>9.: Stromausfall.</b> Auch wer sicher backt, bekommt das Ergebnis des Ofenwurfs statt +1. Der Schutz vor Naschern bleibt.</li>
+      <li><b>9.: Stromausfall.</b> Wer sicher backt, bekommt heute <b>nicht +1</b>, sondern genau wie beim Ofen hochdrehen das Ergebnis des Ofenwurfs: 1 = −2, 2–5 = +2, 6 = +4. Der Schutz vor Naschern bleibt trotzdem bestehen. Ofen hochdrehen, Naschen und Verzieren funktionieren wie immer.<br><i>Beispiel:</i> Der Ofenwurf ist eine 1. Dann verlieren alle, die sicher backen oder den Ofen hochdrehen, 2 Törtchen. Wer bei einem sicheren Bäcker nascht, wird trotzdem erwischt.</li>
       <li><b>16.: Weihnachtsmarkt.</b> Verzieren kostet nur 2 Törtchen.</li>
       <li><b>24.: Bescherung.</b> Zwei Züge hintereinander, jeder mit eigenem Ofenwurf. Danach steht der Sieger fest.</li>
     </ul>
